@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <style>
     /* Previous styles remain the same until color-grid */
@@ -40,7 +41,7 @@
       padding: 15px;
       background: white;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .canvas-container {
@@ -116,8 +117,15 @@
     }
 
     @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-5px);
+      }
     }
 
     .bounce {
@@ -125,9 +133,19 @@
     }
 
     @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      75% { transform: translateX(5px); }
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-5px);
+      }
+
+      75% {
+        transform: translateX(5px);
+      }
     }
 
     .shake {
@@ -153,6 +171,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="captcha-container">
     <h3>Fun Human Verification</h3>
@@ -198,20 +217,20 @@
     function createShapesPuzzle() {
       const puzzle = document.createElement('div');
       puzzle.className = 'puzzle';
-      
+
       const shapes = ['🔷', '🔷', '🔷', '🔷', '🔷', '🔷', '🔷', '🔶'];
       const targetIndex = Math.floor(Math.random() * 8);
       currentTarget = targetIndex;
-      
+
       // Shuffle shapes
       for (let i = shapes.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [shapes[i], shapes[j]] = [shapes[j], shapes[i]];
       }
-      
+
       const grid = document.createElement('div');
       grid.className = 'shape-grid';
-      
+
       shapes.forEach((shape, i) => {
         const box = document.createElement('div');
         box.className = 'shape-box';
@@ -229,19 +248,19 @@
     function createColorPuzzle() {
       const puzzle = document.createElement('div');
       puzzle.className = 'puzzle';
-      
+
       const baseColor = {
         r: Math.floor(Math.random() * 156) + 50,
         g: Math.floor(Math.random() * 156) + 50,
         b: Math.floor(Math.random() * 156) + 50
       };
-      
+
       const targetIndex = Math.floor(Math.random() * 16);
       currentTarget = targetIndex;
-      
+
       const grid = document.createElement('div');
       grid.className = 'color-grid';
-      
+
       for (let i = 0; i < 16; i++) {
         const box = document.createElement('div');
         box.className = 'color-box';
@@ -260,11 +279,11 @@
     function createPathPuzzle() {
       const puzzle = document.createElement('div');
       puzzle.className = 'puzzle';
-      
+
       const canvasContainer = document.createElement('div');
       canvasContainer.className = 'canvas-container';
       canvasContainer.style.position = 'relative';
-      
+
       const canvas = document.createElement('canvas');
       canvas.width = 300;
       canvas.height = 200;
@@ -294,7 +313,7 @@
         obstacle.style.left = `${100 + (i * 40)}px`;
         obstacle.style.top = '50px';
         canvasContainer.appendChild(obstacle);
-        
+
         obstacles.push({
           element: obstacle,
           y: 50,
@@ -317,49 +336,51 @@
       let isPlaying = false;
       let gameOver = false;
 
-      document.addEventListener('mousemove', (e) => {
-        if (!isPlaying || gameOver) return;
-        
-        const rect = canvasContainer.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        // Update player position with both X and Y coordinates
-        playerX = Math.max(20, Math.min(260, x));
-        playerY = Math.max(20, Math.min(180, y));
-        
-        player.style.left = `${playerX}px`;
-        player.style.top = `${playerY}px`;
-        
-        // Get current player position
-        const playerRect = player.getBoundingClientRect();
-        
-        // Check collisions
-        let collision = false;
-        obstacles.forEach(obstacle => {
-          const obstacleRect = obstacle.element.getBoundingClientRect();
-          if (checkCollision(playerRect, obstacleRect)) {
-            collision = true;
-          }
-        });
-        
-        if (collision) {
-          gameOver = true;
-          isPlaying = false;
-          checkPath(false);
-          return;
-        }
-        
-        // Check win condition
-        const trophyRect = trophy.getBoundingClientRect();
-        if (playerRect.right > trophyRect.left && 
-            playerRect.top < trophyRect.bottom && 
-            playerRect.bottom > trophyRect.top) {
-          gameOver = true;
-          isPlaying = false;
-          checkPath(true);
-        }
-      });
+      // document.addEventListener('mousemove', (e) => {
+      //   if (!isPlaying || gameOver) return;
+
+      //   const rect = canvasContainer.getBoundingClientRect();
+      //   const x = e.clientX - rect.left;
+      //   const y = e.clientY - rect.top;
+
+      //   // Update player position with both X and Y coordinates
+      //   playerX = Math.max(20, Math.min(260, x));
+      //   playerY = Math.max(20, Math.min(180, y));
+
+      //   player.style.left = `${playerX}px`;
+      //   player.style.top = `${playerY}px`;
+
+      //   // Get current player position
+      //   const playerRect = player.getBoundingClientRect();
+
+      //   // Check collisions
+      //   let collision = false;
+      //   obstacles.forEach(obstacle => {
+      //     const obstacleRect = obstacle.element.getBoundingClientRect();
+      //     if (checkCollision(playerRect, obstacleRect)) {
+      //       collision = true;
+      //     }
+      //   });
+
+      //   if (collision) {
+      //     gameOver = true;
+      //     isPlaying = false;
+      //     checkPath(false);
+      //     return;
+      //   }
+
+      //   // Check win condition
+      //   const trophyRect = trophy.getBoundingClientRect();
+      //   if (playerRect.right > trophyRect.left &&
+      //     playerRect.top < trophyRect.bottom &&
+      //     playerRect.bottom > trophyRect.top) {
+      //     gameOver = true;
+      //     isPlaying = false;
+      //     checkPath(true);
+      //   }
+      // });
+
+
 
       canvasContainer.addEventListener('mouseenter', () => {
         if (!gameOver) isPlaying = true;
@@ -369,11 +390,76 @@
         isPlaying = false;
       });
 
+      document.addEventListener('mousemove', handleMove);
+      document.addEventListener('touchmove', handleMove, { passive: false });
+
+      function handleMove(e) {
+        if (!isPlaying || gameOver) return;
+
+        let x, y;
+        if (e.touches) {
+          e.preventDefault();  // Prevents scrolling on touch
+          const touch = e.touches[0];
+          const rect = canvasContainer.getBoundingClientRect();
+          x = touch.clientX - rect.left;
+          y = touch.clientY - rect.top;
+        } else {
+          const rect = canvasContainer.getBoundingClientRect();
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+        }
+
+        playerX = Math.max(20, Math.min(260, x));
+        playerY = Math.max(20, Math.min(180, y));
+
+        player.style.left = `${playerX}px`;
+        player.style.top = `${playerY}px`;
+
+        const playerRect = player.getBoundingClientRect();
+
+        // Check for collisions with obstacles
+        let collision = false;
+        obstacles.forEach(obstacle => {
+          const obstacleRect = obstacle.element.getBoundingClientRect();
+          if (checkCollision(playerRect, obstacleRect)) {
+            collision = true;
+          }
+        });
+
+        if (collision) {
+          gameOver = true;
+          isPlaying = false;
+          checkPath(false);
+          return;
+        }
+
+        // Check if the player reached the trophy
+        const trophyRect = trophy.getBoundingClientRect();
+        if (
+          playerRect.right > trophyRect.left &&
+          playerRect.top < trophyRect.bottom &&
+          playerRect.bottom > trophyRect.top
+        ) {
+          gameOver = true;
+          isPlaying = false;
+          checkPath(true);
+        }
+      }
+
+      canvasContainer.addEventListener('touchstart', () => {
+        if (!gameOver) isPlaying = true;
+      }, { passive: false });
+
+      canvasContainer.addEventListener('touchend', () => {
+        isPlaying = false;
+      });
+
+
       function checkCollision(rect1, rect2) {
-        return !(rect1.right < rect2.left || 
-                rect1.left > rect2.right || 
-                rect1.bottom < rect2.top || 
-                rect1.top > rect2.bottom);
+        return !(rect1.right < rect2.left ||
+          rect1.left > rect2.right ||
+          rect1.bottom < rect2.top ||
+          rect1.top > rect2.bottom);
       }
 
       function animate() {
@@ -385,11 +471,11 @@
             }
             obstacle.element.style.top = `${obstacle.y}px`;
           });
-          
+
           requestAnimationFrame(animate);
         }
       }
-      
+
       animate();
       return puzzle;
     }
@@ -433,20 +519,20 @@
     function nextPuzzle() {
       currentPuzzle++;
       updateProgress();
-      
+
       if (currentPuzzle >= puzzles.length) {
         container.innerHTML = '<h2>✨ Verification Complete! ✨</h2>';
         messageEl.textContent = 'You have successfully proven you are human!';
         messageEl.className = 'message success';
         return;
       }
-      
+
       resetPuzzle();
     }
 
     function showPuzzle() {
       let puzzle;
-      switch(puzzles[currentPuzzle].type) {
+      switch (puzzles[currentPuzzle].type) {
         case 'shapes':
           puzzle = createShapesPuzzle();
           break;
@@ -457,7 +543,7 @@
           puzzle = createPathPuzzle();
           break;
       }
-      
+
       container.appendChild(puzzle);
     }
 
@@ -465,4 +551,5 @@
     showPuzzle();
   </script>
 </body>
+
 </html>
