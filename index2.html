@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    /* Previous styles remain the same until color-grid */
+    .captcha-container {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .puzzle-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .puzzle {
+      position: relative;
+      margin: 15px 0;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .canvas-container {
+      position: relative;
+      margin: 15px auto;
+      width: 300px;
+      height: 200px;
+    }
+
+    canvas {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .success {
+      background: #86efac;
+      color: #064e3b;
+    }
+
+    .error {
+      background: #fecaca;
+      color: #991b1b;
+    }
+
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .shape-box {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .shape-box:hover {
+      transform: scale(1.05);
+      background: #f0f9ff;
+    }
+
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .color-box {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .color-box:hover {
+      transform: scale(1.05);
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .bounce {
+      animation: bounce 0.5s infinite;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .shake {
+      animation: shake 0.3s ease-in-out;
+    }
+
+    .obstacle {
+      font-size: 24px;
+      position: absolute;
+      transition: transform 0.2s;
+    }
+
+    .obstacle:hover {
+      transform: scale(1.2);
+    }
+
+    .finish-line {
+      font-size: 40px;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  </style>
+</head>
+<body>
+  <div class="captcha-container">
+    <h3>Fun Human Verification</h3>
+    <div class="progress-bar">
+      <div id="progressFill" class="progress-fill"></div>
+    </div>
+    <div id="puzzleContainer" class="puzzle-container">
+      <!-- Puzzles will be generated here -->
+    </div>
+    <div id="message" class="message"></div>
+  </div>
+
+  <script>
+    const puzzles = [
+      {
+        type: 'shapes',
+        question: 'Find the odd one out',
+        verify: (answer, target) => answer === target
+      },
+      {
+        type: 'color',
+        question: 'Find the slightly different color',
+        verify: (answer, target) => answer === target
+      },
+      {
+        type: 'path',
+        question: 'Guide the star through the emojis to reach the trophy',
+        verify: (answer, target) => answer === target
+      }
+    ];
+
+    let currentPuzzle = 0;
+    let currentTarget = null;
+    const container = document.getElementById('puzzleContainer');
+    const messageEl = document.getElementById('message');
+    const progressFill = document.getElementById('progressFill');
+
+    function updateProgress() {
+      const progress = (currentPuzzle / puzzles.length) * 100;
+      progressFill.style.width = `${progress}%`;
+    }
+
+    function createShapesPuzzle() {
+      const puzzle = document.createElement('div');
+      puzzle.className = 'puzzle';
+      
+      const shapes = ['🔷', '🔷', '🔷', '🔷', '🔷', '🔷', '🔷', '🔶'];
+      const targetIndex = Math.floor(Math.random() * 8);
+      currentTarget = targetIndex;
+      
+      // Shuffle shapes
+      for (let i = shapes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shapes[i], shapes[j]] = [shapes[j], shapes[i]];
+      }
+      
+      const grid = document.createElement('div');
+      grid.className = 'shape-grid';
+      
+      shapes.forEach((shape, i) => {
+        const box = document.createElement('div');
+        box.className = 'shape-box';
+        box.textContent = shape;
+        box.dataset.index = i;
+        box.onclick = () => checkShapes(i);
+        grid.appendChild(box);
+      });
+
+      puzzle.innerHTML = '<p>Find the different shape</p>';
+      puzzle.appendChild(grid);
+      return puzzle;
+    }
+
+    function createColorPuzzle() {
+      const puzzle = document.createElement('div');
+      puzzle.className = 'puzzle';
+      
+      const baseColor = {
+        r: Math.floor(Math.random() * 156) + 50,
+        g: Math.floor(Math.random() * 156) + 50,
+        b: Math.floor(Math.random() * 156) + 50
+      };
+      
+      const targetIndex = Math.floor(Math.random() * 16);
+      currentTarget = targetIndex;
+      
+      const grid = document.createElement('div');
+      grid.className = 'color-grid';
+      
+      for (let i = 0; i < 16; i++) {
+        const box = document.createElement('div');
+        box.className = 'color-box';
+        const offset = i === targetIndex ? 15 : 0;
+        box.style.backgroundColor = `rgb(${baseColor.r + offset}, ${baseColor.g + offset}, ${baseColor.b + offset})`;
+        box.dataset.index = i;
+        box.onclick = () => checkColor(i);
+        grid.appendChild(box);
+      }
+
+      puzzle.innerHTML = '<p>Find the slightly different colored square</p>';
+      puzzle.appendChild(grid);
+      return puzzle;
+    }
+
+    function createPathPuzzle() {
+      const puzzle = document.createElement('div');
+      puzzle.className = 'puzzle';
+      
+      const canvasContainer = document.createElement('div');
+      canvasContainer.className = 'canvas-container';
+      canvasContainer.style.position = 'relative';
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 200;
+      canvasContainer.appendChild(canvas);
+      puzzle.appendChild(canvasContainer);
+
+      // Add finish line trophy
+      const trophy = document.createElement('div');
+      trophy.className = 'finish-line';
+      trophy.textContent = '🏆';
+      trophy.style.position = 'absolute';
+      trophy.style.right = '20px';
+      trophy.style.top = '50%';
+      trophy.style.transform = 'translateY(-50%)';
+      canvasContainer.appendChild(trophy);
+
+      const obstacles = [];
+      const obstacleEmojis = ['🦄', '🎈', '🌈', '🎠', '🦒', '🎨'];
+      currentTarget = 0;
+
+      // Create obstacles with fun emojis
+      for (let i = 0; i < 5; i++) {
+        const obstacle = document.createElement('div');
+        obstacle.className = 'obstacle bounce';
+        obstacle.textContent = obstacleEmojis[i % obstacleEmojis.length];
+        obstacle.style.position = 'absolute';
+        obstacle.style.left = `${100 + (i * 40)}px`;
+        obstacle.style.top = '50px';
+        canvasContainer.appendChild(obstacle);
+        
+        obstacles.push({
+          element: obstacle,
+          y: 50,
+          dy: 1 + Math.random(),
+          range: 40 + Math.random() * 20
+        });
+      }
+
+      const player = document.createElement('div');
+      player.className = 'obstacle';
+      player.textContent = '⭐';
+      player.style.position = 'absolute';
+      player.style.left = '20px';
+      player.style.top = '100px';
+      player.style.zIndex = '100';
+      canvasContainer.appendChild(player);
+
+      let playerX = 20;
+      let playerY = 100;
+      let isPlaying = false;
+      let gameOver = false;
+
+      document.addEventListener('mousemove', (e) => {
+        if (!isPlaying || gameOver) return;
+        
+        const rect = canvasContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Update player position with both X and Y coordinates
+        playerX = Math.max(20, Math.min(260, x));
+        playerY = Math.max(20, Math.min(180, y));
+        
+        player.style.left = `${playerX}px`;
+        player.style.top = `${playerY}px`;
+        
+        // Get current player position
+        const playerRect = player.getBoundingClientRect();
+        
+        // Check collisions
+        let collision = false;
+        obstacles.forEach(obstacle => {
+          const obstacleRect = obstacle.element.getBoundingClientRect();
+          if (checkCollision(playerRect, obstacleRect)) {
+            collision = true;
+          }
+        });
+        
+        if (collision) {
+          gameOver = true;
+          isPlaying = false;
+          checkPath(false);
+          return;
+        }
+        
+        // Check win condition
+        const trophyRect = trophy.getBoundingClientRect();
+        if (playerRect.right > trophyRect.left && 
+            playerRect.top < trophyRect.bottom && 
+            playerRect.bottom > trophyRect.top) {
+          gameOver = true;
+          isPlaying = false;
+          checkPath(true);
+        }
+      });
+
+      canvasContainer.addEventListener('mouseenter', () => {
+        if (!gameOver) isPlaying = true;
+      });
+
+      canvasContainer.addEventListener('mouseleave', () => {
+        isPlaying = false;
+      });
+
+      function checkCollision(rect1, rect2) {
+        return !(rect1.right < rect2.left || 
+                rect1.left > rect2.right || 
+                rect1.bottom < rect2.top || 
+                rect1.top > rect2.bottom);
+      }
+
+      function animate() {
+        if (currentPuzzle === 2 && !gameOver) {
+          obstacles.forEach(obstacle => {
+            obstacle.y += obstacle.dy;
+            if (obstacle.y < 50 || obstacle.y > 50 + obstacle.range) {
+              obstacle.dy *= -1;
+            }
+            obstacle.element.style.top = `${obstacle.y}px`;
+          });
+          
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      animate();
+      return puzzle;
+    }
+
+    function checkShapes(index) {
+      if (puzzles[currentPuzzle].verify(index, currentTarget)) {
+        nextPuzzle();
+      } else {
+        showError();
+      }
+    }
+
+    function checkColor(index) {
+      if (puzzles[currentPuzzle].verify(index, currentTarget)) {
+        nextPuzzle();
+      } else {
+        showError();
+      }
+    }
+
+    function checkPath(completed) {
+      if (puzzles[currentPuzzle].verify(completed, true)) {
+        nextPuzzle();
+      } else {
+        showError();
+      }
+    }
+
+    function showError() {
+      messageEl.textContent = 'Try again!';
+      messageEl.className = 'message error shake';
+      setTimeout(() => messageEl.classList.remove('shake'), 300);
+      resetPuzzle();
+    }
+
+    function resetPuzzle() {
+      container.innerHTML = '';
+      showPuzzle();
+    }
+
+    function nextPuzzle() {
+      currentPuzzle++;
+      updateProgress();
+      
+      if (currentPuzzle >= puzzles.length) {
+        container.innerHTML = '<h2>✨ Verification Complete! ✨</h2>';
+        messageEl.textContent = 'You have successfully proven you are human!';
+        messageEl.className = 'message success';
+        return;
+      }
+      
+      resetPuzzle();
+    }
+
+    function showPuzzle() {
+      let puzzle;
+      switch(puzzles[currentPuzzle].type) {
+        case 'shapes':
+          puzzle = createShapesPuzzle();
+          break;
+        case 'color':
+          puzzle = createColorPuzzle();
+          break;
+        case 'path':
+          puzzle = createPathPuzzle();
+          break;
+      }
+      
+      container.appendChild(puzzle);
+    }
+
+    // Start the first puzzle
+    showPuzzle();
+  </script>
+</body>
+</html>
